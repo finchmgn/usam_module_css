@@ -13,32 +13,44 @@ var gulp            = require('gulp'),
 
 /* КОНВЕРТИРУЕМ SASS В CSS */
 gulp.task('sass', async function() {
-    gulp.src('src/sass/usam_module_css.sass')
+    return gulp.src('src/sass/usam_module_css.sass')
     .pipe(sass())
     .pipe(autoprefixer(['last 15 versions', '> 1%', 'ie 8', 'ie 7', {cascade: true}]))
-    .pipe(gulp.dest('dist/css'))
+    .pipe(gulp.dest('src/css'))
     .pipe(browserSync.reload({stream: true}));
 });
 
 /* СЖИМАЕМ CSS | ДОБАВЛЯЕМ СУФФИКС */
-gulp.task('css', async function() {
-    return gulp.src('dist/css/usam_module_css.css')
+gulp.task('cssmin', async function() {
+    return gulp.src('src/css/usam_module_css.css')
     .pipe(cssmin())
     .pipe(rename({suffix: '.min'}))
     .pipe(gulp.dest('dist/css'));
 });
 
-/* КОПИРУЕМ JS В DIST */
+/* КОПИРУЕМ НЕСЖАТЫЙ CSS В DIST */
+gulp.task('csscopy', async function() {
+    return gulp.src('src/css/usam_module_css.css')
+    .pipe(gulp.dest('dist/css'))
+});
+
+/* СЖИМАЕМ JS И ДОБАВЛЯЕМ СУФФУКС */
+gulp.task('jsmin', async function() {
+    return gulp.src('src/js/usam_module_css.js')
+    .pipe(uglify())
+    .pipe(rename({suffix: '.min'}))
+    .pipe(gulp.dest('src/js'))
+});
+
+/* КОПИРУЕМ НЕСЖАТЫЙ JS В DIST */
 gulp.task('jscopy', async function() {
     return gulp.src('src/js/usam_module_css.js')
     .pipe(gulp.dest('dist/js'))
 });
 
-/* СЖИМАЕМ JS И ДОБАВЛЯЕМ СУФФУКС */
-gulp.task('jsuglify', async function() {
-    return gulp.src('dist/js/usam_module_css.js')
-    .pipe(uglify())
-    .pipe(rename({suffix: '.min'}))
+/* КОПИРУЕМ СЖАТЫЙ JS В DIST */
+gulp.task('jsmincopy', async function() {
+    return gulp.src('src/js/usam_module_css.min.js')
     .pipe(gulp.dest('dist/js'))
 });
 
@@ -47,6 +59,7 @@ gulp.task('clear', async function() {
     return cache.clearAll();
 });
 
+/* УДАЛЯЕМ ПАПКУ DIST */
 gulp.task('del', function() {
     return del('dist')
 });
@@ -55,7 +68,7 @@ gulp.task('del', function() {
 gulp.task('browser-sync', async function() {
     browserSync({
         /* В PROXY НУЖНО УКАЗАТЬ ПАПКУ, В КОТОРОЙ БУДЕТ СЕРВЕР (ОТНОСИТЕЛЬНО ПАПКИ С ВИРТУАЛЬНЫМ СЕРВЕРОМ) */
-        /* НАПРИМЕР, ЕСЛИ ИСПОЛЬЗУЕТСЯ OPEN SERVER, ТО УКАЗЫВАЕМ ОТНОСИТЕЛЬОН ПАПКИ DOMAINS */
+        /* НАПРИМЕР, ЕСЛИ ВЫ ИСПОЛЬЗУЕТЕ OPEN SERVER, ТО УКАЗЫВАЕМ ОТНОСИТЕЛЬНО ПАПКИ DOMAINS */
         proxy: 'usam_module_css/',
         notify: false
     });
@@ -67,9 +80,13 @@ gulp.task('watch', async function() {
     gulp.watch('src/sass/**/*.sass').on('change', browserSync.reload);
     gulp.watch('src/js/**/*.js', gulp.parallel('jscopy', 'jsuglify'));
     gulp.watch('src/js/**/*.js').on('change', browserSync.reload);
+    gulp.watch('demo/usam_module_css.html').on('change', browserSync.reload);
 });
 
 
 
-/* ТАСК РЕЖИМ РАЗРАБОТКИ И АВТОМАТИЧЕСКОЙ СБОРКИ ПРОЕКТА */
-gulp.task('dev', gulp.parallel('del', 'browser-sync', 'sass', 'css', 'jscopy', 'jsuglify', 'watch'));
+/* ТАСК РЕЖИМ РАЗРАБОТКИ ПРОЕКТА */
+gulp.task('dev', gulp.parallel('browser-sync', 'sass', 'jsmin', 'watch'));
+
+/* ТАСК РЕЖИМ СБОРКИ ПРОЕКТА */
+gulp.task('build', gulp.parallel('del', 'clear', 'csscopy', 'jscopy', 'jsmincopy', 'htmlcopy'));
