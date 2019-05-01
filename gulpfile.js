@@ -13,7 +13,7 @@ var gulp            = require('gulp'),
 
 /* КОНВЕРТИРУЕМ SASS В CSS */
 gulp.task('sass', async function() {
-    return gulp.src('src/sass/usam_module_css.sass')
+    gulp.src('src/sass/usam_module_css.sass')
     .pipe(sass())
     .pipe(autoprefixer(['last 15 versions', '> 1%', 'ie 8', 'ie 7', {cascade: true}]))
     .pipe(gulp.dest('src/css'))
@@ -69,7 +69,8 @@ gulp.task('browser-sync', async function() {
     browserSync({
         /* В PROXY НУЖНО УКАЗАТЬ ПАПКУ, В КОТОРОЙ БУДЕТ СЕРВЕР (ОТНОСИТЕЛЬНО ПАПКИ С ВИРТУАЛЬНЫМ СЕРВЕРОМ) */
         /* НАПРИМЕР, ЕСЛИ ВЫ ИСПОЛЬЗУЕТЕ OPEN SERVER, ТО УКАЗЫВАЕМ ОТНОСИТЕЛЬНО ПАПКИ DOMAINS */
-        proxy: 'usam_module_css/',
+        server: src,
+        /* proxy: 'usam_module_css/', */
         notify: false
     });
 });
@@ -80,7 +81,7 @@ gulp.task('watch', async function() {
     gulp.watch('src/sass/**/*.sass').on('change', browserSync.reload);
     gulp.watch('src/js/**/*.js', gulp.parallel('jsmin'));
     gulp.watch('src/js/**/*.js').on('change', browserSync.reload);
-    gulp.watch('index.html').on('change', browserSync.reload);
+    gulp.watch('src/index.html').on('change', browserSync.reload);
 });
 
 
