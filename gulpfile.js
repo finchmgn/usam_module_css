@@ -76,11 +76,11 @@ gulp.task('browser-sync', async function() {
 
 /* НАБЛЮДАЕМ ЗА ИЗМЕНЕНИЯМИ В ФАЙЛАХ */
 gulp.task('watch', async function() {
-    gulp.watch('src/sass/**/*.sass', gulp.parallel('sass', 'css'));
+    gulp.watch('src/sass/**/*.sass', gulp.parallel('sass', 'cssmin'));
     gulp.watch('src/sass/**/*.sass').on('change', browserSync.reload);
-    gulp.watch('src/js/**/*.js', gulp.parallel('jscopy', 'jsuglify'));
+    gulp.watch('src/js/**/*.js', gulp.parallel('jsmin'));
     gulp.watch('src/js/**/*.js').on('change', browserSync.reload);
-    gulp.watch('demo/usam_module_css.html').on('change', browserSync.reload);
+    gulp.watch('index.html').on('change', browserSync.reload);
 });
 
 
@@ -89,4 +89,4 @@ gulp.task('watch', async function() {
 gulp.task('dev', gulp.parallel('browser-sync', 'sass', 'jsmin', 'watch'));
 
 /* ТАСК РЕЖИМ СБОРКИ ПРОЕКТА */
-gulp.task('build', gulp.parallel('del', 'clear', 'csscopy', 'jscopy', 'jsmincopy', 'htmlcopy'));
+gulp.task('build', gulp.parallel('del', 'clear', 'csscopy', 'jscopy', 'jsmincopy'));
