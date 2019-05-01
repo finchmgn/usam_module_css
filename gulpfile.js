@@ -20,6 +20,15 @@ gulp.task('sass', async function() {
     .pipe(browserSync.reload({stream: true}));
 });
 
+/* КОНВЕРТИРУЕМ SASS В CSS | ДЛЯ DEMO */
+gulp.task('sassdemo', async function() {
+    gulp.src('src/additions/demo.sass')
+    .pipe(sass())
+    .pipe(autoprefixer(['last 15 versions', '> 1%', 'ie 8', 'ie 7', {cascade: true}]))
+    .pipe(gulp.dest('src/additions'))
+    .pipe(browserSync.reload({stream: true}));
+});
+
 /* СЖИМАЕМ CSS | ДОБАВЛЯЕМ СУФФИКС */
 gulp.task('cssmin', async function() {
     return gulp.src('src/css/usam_module_css.css')
@@ -67,10 +76,9 @@ gulp.task('del', function() {
 /* СЕРВЕР */
 gulp.task('browser-sync', async function() {
     browserSync({
-        /* В PROXY НУЖНО УКАЗАТЬ ПАПКУ, В КОТОРОЙ БУДЕТ СЕРВЕР (ОТНОСИТЕЛЬНО ПАПКИ С ВИРТУАЛЬНЫМ СЕРВЕРОМ) */
-        /* НАПРИМЕР, ЕСЛИ ВЫ ИСПОЛЬЗУЕТЕ OPEN SERVER, ТО УКАЗЫВАЕМ ОТНОСИТЕЛЬНО ПАПКИ DOMAINS */
-        server: src,
-        /* proxy: 'usam_module_css/', */
+        server: {
+            baseDir: 'src'
+        },
         notify: false
     });
 });
@@ -79,15 +87,18 @@ gulp.task('browser-sync', async function() {
 gulp.task('watch', async function() {
     gulp.watch('src/sass/**/*.sass', gulp.parallel('sass', 'cssmin'));
     gulp.watch('src/sass/**/*.sass').on('change', browserSync.reload);
+    gulp.watch('src/additions/demo.sass', gulp.parallel('sassdemo'));
+    gulp.watch('src/additions/demo.sass').on('change', browserSync.reload);
     gulp.watch('src/js/**/*.js', gulp.parallel('jsmin'));
     gulp.watch('src/js/**/*.js').on('change', browserSync.reload);
+    gulp.watch('src/additions/demo.js').on('change', browserSync.reload);
     gulp.watch('src/index.html').on('change', browserSync.reload);
 });
 
 
 
 /* ТАСК РЕЖИМ РАЗРАБОТКИ ПРОЕКТА */
-gulp.task('dev', gulp.parallel('browser-sync', 'sass', 'jsmin', 'watch'));
+gulp.task('dev', gulp.parallel('browser-sync', 'sass', 'sassdemo', 'jsmin', 'watch'));
 
 /* ТАСК РЕЖИМ СБОРКИ ПРОЕКТА */
 gulp.task('build', gulp.parallel('del', 'clear', 'csscopy', 'jscopy', 'jsmincopy'));
