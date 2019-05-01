@@ -11,57 +11,35 @@ var gulp            = require('gulp'),
     cache           = require('gulp-cache'),
     autoprefixer    = require('gulp-autoprefixer');
 
-/* КОНВЕРТИРУЕМ SASS В CSS | В ФАЙЛЕ LIBS.SASS УКАЗЫВАЕМ ПУТИ К ФАЙЛАМ SASS И CSS БИБЛИОТЕК */
-gulp.task('sassmain', async function() {
-    gulp.src('src/sass/main.sass')
+/* КОНВЕРТИРУЕМ SASS В CSS */
+gulp.task('sass', async function() {
+    gulp.src('src/sass/usam_module_css.sass')
     .pipe(sass())
     .pipe(autoprefixer(['last 15 versions', '> 1%', 'ie 8', 'ie 7', {cascade: true}]))
     .pipe(gulp.dest('dist/css'))
     .pipe(browserSync.reload({stream: true}));
 });
 
-gulp.task('sasslibs', async function() {
-    return gulp.src('src/sass/libs.sass')
-    .pipe(sass())
-    .pipe(gulp.dest('dist/css'))
-    .pipe(browserSync.reload({stream: true}));
-});
-
-/* СЖИМАЕМ CSS БИБЛИОТЕК | ДОБАВЛЯЕМ СУФФИКС */
-gulp.task('csslibs', async function() {
-    return gulp.src('dist/css/libs.css')
+/* СЖИМАЕМ CSS | ДОБАВЛЯЕМ СУФФИКС */
+gulp.task('css', async function() {
+    return gulp.src('dist/css/usam_module_css.css')
     .pipe(cssmin())
     .pipe(rename({suffix: '.min'}))
     .pipe(gulp.dest('dist/css'));
 });
 
-/* СЖИМАЕМ JS БИБЛИОТЕК */
-gulp.task('jslibs', async function() {
-    return gulp.src([
-        'src/libs/jquery/dist/jquery.min.js',
-        'src/libs/foundation-sites/dist/js/foundation.js'
-    ])
-    .pipe(concat('libs.min.js'))
+/* КОПИРУЕМ JS В DIST */
+gulp.task('jscopy', async function() {
+    return gulp.src('src/js/usam_module_css.js')
+    .pipe(gulp.dest('dist/js'))
+});
+
+/* СЖИМАЕМ JS И ДОБАВЛЯЕМ СУФФУКС */
+gulp.task('jsuglify', async function() {
+    return gulp.src('dist/js/usam_module_css.js')
     .pipe(uglify())
-    .pipe(gulp.dest('dist/js'));
-});
-
-/* JS РАЗРАБОТЧИКА */
-gulp.task('jsmain', async function() {
-    return gulp.src('src/js/main.js')
-    .pipe(gulp.dest('dist/js'));
-});
-
-/* СЖИМАЕМ ИЗОБРАЖЕНИЯ */
-gulp.task('img', async function() {
-    return(gulp.src('src/img/**/*.*'))
-    .pipe(cache(imagemin({
-        interlaced: true,
-        progressive: true,
-        svgoPlugins: [{removeViewBox: false}],
-        une: [pngquant()]
-    })))
-    .pipe(gulp.dest('dist/img'));
+    .pipe(rename({suffix: '.min'}))
+    .pipe(gulp.dest('dist/js'))
 });
 
 /* ОЧИЩАЕМ КЭШ */
@@ -69,9 +47,8 @@ gulp.task('clear', async function() {
     return cache.clearAll();
 });
 
-/* УДАЛЯЕМ ПАПКУ dist/IMG */
-gulp.task('delimg', function() {
-    return del('dist/img');
+gulp.task('del', function() {
+    return del('dist')
 });
 
 /* СЕРВЕР */
@@ -79,24 +56,20 @@ gulp.task('browser-sync', async function() {
     browserSync({
         /* В PROXY НУЖНО УКАЗАТЬ ПАПКУ, В КОТОРОЙ БУДЕТ СЕРВЕР (ОТНОСИТЕЛЬНО ПАПКИ С ВИРТУАЛЬНЫМ СЕРВЕРОМ) */
         /* НАПРИМЕР, ЕСЛИ ИСПОЛЬЗУЕТСЯ OPEN SERVER, ТО УКАЗЫВАЕМ ОТНОСИТЕЛЬОН ПАПКИ DOMAINS */
-        proxy: 'mamadochka/',
+        proxy: 'usam_module_css/',
         notify: false
     });
 });
 
 /* НАБЛЮДАЕМ ЗА ИЗМЕНЕНИЯМИ В ФАЙЛАХ */
 gulp.task('watch', async function() {
-    gulp.watch(['src/sass/**/*.sass', '!src/sass/libs.sass'], gulp.parallel('sassmain'));
-    gulp.watch('src/sass/libs.sass', gulp.parallel('sasslibs', 'csslibs'));
+    gulp.watch('src/sass/**/*.sass', gulp.parallel('sass', 'css'));
     gulp.watch('src/sass/**/*.sass').on('change', browserSync.reload);
-    gulp.watch('src/js/main.js', gulp.parallel('jsmain'));
-    gulp.watch('src/js/libs.js', gulp.parallel('jslibs'));
+    gulp.watch('src/js/**/*.js', gulp.parallel('jscopy', 'jsuglify'));
     gulp.watch('src/js/**/*.js').on('change', browserSync.reload);
-    gulp.watch('src/img/**/*.*', gulp.parallel('delimg', 'img'));
-    gulp.watch('src/img/**/*.*').on('change', browserSync.reload);
 });
 
 
 
 /* ТАСК РЕЖИМ РАЗРАБОТКИ И АВТОМАТИЧЕСКОЙ СБОРКИ ПРОЕКТА */
-gulp.task('dev', gulp.parallel('delimg', 'browser-sync', 'sassmain', 'sasslibs', 'csslibs', 'jslibs', 'img', 'watch'));
+gulp.task('dev', gulp.parallel('del', 'browser-sync', 'sass', 'css', 'jscopy', 'jsuglify', 'watch'));
